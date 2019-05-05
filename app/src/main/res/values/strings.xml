@@ -1,4 +1,8 @@
 <resources>
-    <string name="app_name">tiamat</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="app_name">Tiamat</string>
+    <string name="title_activity_maps">Tiamat</string>
+    <string name="please_allow_location">Please give permission to use your location so we can creep better.</string>
+    <string name="dialog_okay">Okay</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_no">No</string>
 </resources>
