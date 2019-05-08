@@ -1,4 +1,4 @@
-package com.mezzermite.tiamat
+package com.mpdeplazes.tiamat.activities
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.pm.PackageManager
@@ -17,7 +17,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.mezzermite.tiamat.dialogs.InfoDialog
+import com.mpdeplazes.tiamat.R
+import com.mpdeplazes.tiamat.dialogs.InfoDialog
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 

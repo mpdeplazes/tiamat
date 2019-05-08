@@ -1,18 +1,20 @@
-package com.mezzermite.tiamat.dialogs
+package com.mpdeplazes.tiamat.dialogs
 
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.res.Resources
-import android.support.v4.content.res.TypedArrayUtils.getString
-import com.mezzermite.tiamat.R
+import com.mpdeplazes.tiamat.R
 
-class InfoDialog {
-
+class YesNoDialog {
     companion object {
+        val YES = DialogInterface.BUTTON_POSITIVE
+        val NO = DialogInterface.BUTTON_NEGATIVE
+
         fun makeAndShow(
             context: Context,
             message: String,
+            yesText: String = context.getString(R.string.dialog_yes),
+            noText: String = context.getString(R.string.dialog_no),
             onClickFun: (dialog: DialogInterface?, which: Int) -> Unit
         ) {
             val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
@@ -21,10 +23,8 @@ class InfoDialog {
 
             AlertDialog.Builder(context)
                 .setMessage(message)
-                .setPositiveButton(
-                    context.getString(R.string.dialog_okay),
-                    dialogClickListener
-                )
+                .setPositiveButton(yesText, dialogClickListener)
+                .setNegativeButton(noText, dialogClickListener)
                 .show()
         }
     }

@@ -1,8 +1,8 @@
 # Tiamat (Primordial Goddess of the Salty Sea)
 
 Features that I want to learn:
-  - Get your location and zoom to it
-  - Permissions logic
+  - ~~Get your location and zoom to it~~
+  - ~~Permissions logic~~
   - Persist coords (markers) locally
   - Provide additional information with the coords
     - present this information in the map
