@@ -6,9 +6,10 @@ import android.location.Geocoder
 import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -18,12 +19,22 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.mpdeplazes.tiamat.R
+import com.mpdeplazes.tiamat.db.TiamatDatabase
+import com.mpdeplazes.tiamat.db.entity.MarkerEntity
 import com.mpdeplazes.tiamat.dialogs.InfoDialog
+import com.mpdeplazes.tiamat.util.removeAllAndUpDateMap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var gMap: GoogleMap
     private lateinit var locationManager: LocationManager
+    private lateinit var tiamatDatabase: TiamatDatabase
+    private lateinit var coroutineScope: CoroutineScope
+    private lateinit var baseCoroutineJob: Job
     // todo where would this usually live, what values
     private val LOCATION_PERMISSION_REQUEST_CODE = 1337
     private val currentMarkers: MutableList<Marker> = mutableListOf()
@@ -35,11 +46,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         (supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
             .getMapAsync(this)
 
-        locationManager =  getSystemService(LOCATION_SERVICE) as LocationManager
+        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        tiamatDatabase = TiamatDatabase.getInstance(this)
+        baseCoroutineJob = Job()
+        coroutineScope = CoroutineScope(Dispatchers.IO + baseCoroutineJob)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         gMap = googleMap
+        gMap.setOnMapClickListener { latLng -> onMapClick(latLng) }
         goToInitialMapPosition()
     }
 
@@ -65,6 +80,39 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun onMapClick(latLng: LatLng) {
+        val mapsActivity = this
+        coroutineScope.launch {
+            TiamatDatabase.getInstance(mapsActivity).markerDao().insert(
+                latLng.let {
+                    MarkerEntity(
+                        latitude = it.latitude,
+                        longitude = it.longitude
+                    )
+                }
+            )
+
+            val stringBuilder = StringBuilder("index,latitude,longitude")
+
+            // Get list of markers
+            tiamatDatabase.markerDao().getAll()
+                .forEachIndexed { index, markerEntity ->
+                    if (index != 0) {
+                        stringBuilder.append("\n")
+                    }
+                    stringBuilder.append("$index, ${markerEntity.latitude}, ${markerEntity.longitude}")
+                }
+
+            mapsActivity.runOnUiThread {
+                Toast.makeText(
+                    mapsActivity,
+                    stringBuilder,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
     /**
      * Get current location and moves map position to that location. If permission not allowed, then
      * the center of Montana is used for location, and zoom is set to hold state.
@@ -84,6 +132,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             null
         }
 
+        // todo potentially give option of realtime vs last known
         val latLng = lastKnownLocation
             ?.let { LatLng(it.latitude, it.longitude) }
             // default to montana, get it fancy or just default to hard coded
@@ -100,17 +149,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
 
         // remove all markers
-        removeAllMarkers()
+        currentMarkers.removeAllAndUpDateMap()
 
         // Dynamic zoom title based on if we found location
         val zoom = if (lastKnownLocation != null) {
-            // add a marker
-            MarkerOptions()
-                .position(latLng)
-                .title("Your Current Location")
-                .let { gMap.addMarker(it) }
-                .let { currentMarkers.add(it) }
-            15f
+            15f.also {
+                // add a marker
+                MarkerOptions()
+                    .position(latLng)
+                    .title("Your Current Location")
+                    .let { gMap.addMarker(it) }
+                    .let { currentMarkers.add(it) }
+            }
         } else {
             6f
         }
@@ -127,16 +177,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     null
                 )
             }
-    }
-
-    private fun removeAllMarkers() {
-        // Remove themselves from the map
-        currentMarkers.forEach {
-            it.remove()
-        }
-
-        // Empty the list
-        currentMarkers.clear()
     }
 
     private fun askForLocationPermission() {
