@@ -16,4 +16,7 @@ interface MarkerDao {
 
     @Delete
     suspend fun delete(vararg markerEntity: MarkerEntity)
+
+    @Query("DELETE FROM markers WHERE latitude = :latitude AND longitude = :longitude")
+    suspend fun deleteByLocation(latitude: Double, longitude: Double)
 }
