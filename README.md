@@ -1,4 +1,4 @@
-# Tiamat (Primordial Goddess of the Salty Sea)
+# Tiamat
 
 The main object of this project is to learn some Android development while throwing an
 app together that I might use.
