@@ -24,7 +24,6 @@ abstract class TiamatDatabase : RoomDatabase() {
         markerEntities: List<MarkerEntity>,
         onResult: (markers: List<MarkerEntity>) -> Unit
     ) {
-
         coroutineScope.launch {
             markerDao().insert(*markerEntities.toTypedArray())
 
