@@ -1,4 +1,4 @@
-package com.mezzermite.tiamat
+package com.mpdeplazes.tiamat
 
 import org.junit.Test
 
